@@ -43,7 +43,7 @@ func Read(word string) (*models.PseudorandomWord, error) {
 	return pseudorandomWord, nil
 }
 
-func ListAll() []*models.PseudorandomWord {
+func ListAll() ([]*models.PseudorandomWord, error) {
 	list := make([]*models.PseudorandomWord, 0)
 	iter := database.NewIterator(nil, nil)
 	defer iter.Release()
@@ -52,8 +52,12 @@ func ListAll() []*models.PseudorandomWord {
 		// only valid until the next call to Next.
 		key := iter.Key()
 		value := iter.Value()
-		list = append(list, models.NewPseudorandomWordFromDatabaseKeyValue(key, value))
+		v, err := models.NewPseudorandomWordFromDatabaseKeyValue(key, value)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, v)
 	}
-	return list
+	return list, nil
 
 }

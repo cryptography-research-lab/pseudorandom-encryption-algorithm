@@ -2,35 +2,41 @@ package find
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cryptography-research-lab/pseudorandom-encryption-algorithm/data"
 	"github.com/cryptography-research-lab/pseudorandom-encryption-algorithm/pkg/database"
 	"github.com/cryptography-research-lab/pseudorandom-encryption-algorithm/pkg/models"
 	"github.com/cryptography-research-lab/pseudorandom-encryption-algorithm/pkg/random"
-	"strings"
 )
 
 const SeedIndexLimit = 1000000000
+
+var MaxWordLength = 0
 
 func ReadWordSet() map[string]struct{} {
 	lines := strings.Split(data.Words, "\n")
 	dict := make(map[string]struct{})
 	for _, line := range lines {
 		dict[strings.TrimSpace(line)] = struct{}{}
+		MaxWordLength = max(MaxWordLength, len(line))
 	}
 	return dict
 }
 
 func Run() {
+	set := ReadWordSet()
+
 	for i := 0; i < 10000; i++ {
-		RunForSeed(int64(i))
+		RunForSeed(set, int64(i))
 	}
 }
 
-func RunForSeed(seed int64) {
-	set := ReadWordSet()
+func RunForSeed(set map[string]struct{}, seed int64) {
+
 	r := random.New(seed)
 	for {
-		word, index := r.NextWord()
+		word, index := r.NextWord(MaxWordLength)
 
 		if index > SeedIndexLimit {
 			return
@@ -45,7 +51,7 @@ func RunForSeed(seed int64) {
 		if err == nil && read.Index <= index {
 			continue
 		}
-		err = database.Save(&models.PseudorandomWord{seed, index, word})
+		err = database.Save(&models.PseudorandomWord{Seed: seed, Index: index, Text: word})
 		fmt.Printf("save text %s, seed = %d, index = %d\n", word, seed, index)
 		if err != nil {
 			panic(err)
