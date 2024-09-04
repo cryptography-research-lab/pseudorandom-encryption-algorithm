@@ -23,11 +23,11 @@ type PseudorandomWord struct {
 
 // ------------------------------------------------ ---------------------------------------------------------------------
 
-func NewPseudorandomWordFromDatabaseKeyValue(key, value []byte) *PseudorandomWord {
+func NewPseudorandomWordFromDatabaseKeyValue(key, value []byte) (*PseudorandomWord, error) {
 	x := &PseudorandomWord{}
 	x.SetDatabaseKey(key)
-	x.SetDatabaseValue(value)
-	return x
+	err := x.SetDatabaseValue(value)
+	return x, err
 }
 
 func (x *PseudorandomWord) GetDatabaseKey() []byte {

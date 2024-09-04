@@ -16,27 +16,28 @@ func New(seed int64) *PseudorandomWordSequence {
 	}
 }
 
-func (x *PseudorandomWordSequence) NextWord() (string, int64) {
+var passwordChars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&*-+.?!,;:")
+
+func (x *PseudorandomWordSequence) NextWord(maxLen int) (string, int64) {
 
 	runes := make([]rune, 0)
 
-	// 清空掉前置的0
 	for {
-		c := rune(x.R.Uint32() % 26)
-		if c != 0 {
-			runes = append(runes, 'a'+c)
+		// 获取一个随机数
+		// 如果这个数是passwordChars的长度,并且runes为空,那么就继续循环,直到runes不为空结束
+		c := x.R.Intn(len(passwordChars) + 1)
+		if c == len(passwordChars) {
+			if len(runes) == 0 {
+				continue
+			}
 			break
 		}
-	}
 
-	// 然后开始读取直到遇到0
-	for {
-		c := rune(x.R.Uint32() % 26)
-		if c == 0 {
+		runes = append(runes, passwordChars[c])
+
+		if len(runes) >= maxLen {
 			break
 		}
-		// TODO 设置一个最大长度限制
-		runes = append(runes, 'a' + c)
 	}
 
 	index := x.Index
@@ -47,16 +48,13 @@ func (x *PseudorandomWordSequence) NextWord() (string, int64) {
 
 // ------------------------------------------------ ---------------------------------------------------------------------
 
-func FindWordByIndex(seed, index int64) string {
+func FindWordByIndex(maxLen int, seed, index int64) string {
 	r := New(seed)
 	var word string
 	for i := int64(0); i < index; i++ {
-		word, _ = r.NextWord()
+		word, _ = r.NextWord(maxLen)
 	}
 	return word
 }
 
 // ------------------------------------------------ ---------------------------------------------------------------------
-
-
-
